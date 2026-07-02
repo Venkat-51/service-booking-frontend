@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "Booking": {
+      "title": "Booking",
+      "description": "A service booking record",
+      "type": "object",
+      "properties": {
+        "technicianId": { "type": "string" },
+        "technicianName": { "type": "string" },
+        "serviceType": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "address": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "createdAt": { "type": "object", "description": "Firestore serverTimestamp" }
+      },
+      "required": ["technicianId", "userId", "address", "date"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User account information",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "photoURL": { "type": "string" }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["password", "google.com"]
+  },
+  "firestore": {
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of all service bookings"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Individual user profiles"
+    }
+  }
+}
