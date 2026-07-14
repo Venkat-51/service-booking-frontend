@@ -1,8 +1,9 @@
 
 "use client";
 
-import { useUser, useFirestore, useCollection } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { useUser } from '@/supabase/provider';
+import { supabase } from '@/supabase/client';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Clock, User, ChevronRight } from 'lucide-react';
@@ -12,18 +13,28 @@ import { useMemo } from 'react';
 
 export default function BookingsPage() {
   const { user, loading: authLoading } = useUser();
-  const db = useFirestore();
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
-  const bookingsQuery = useMemo(() => {
-    if (!db || !user) return null;
-    return query(
-      collection(db, 'bookings'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
-    );
-  }, [db, user]);
-
-  const { data: bookings, loading: dataLoading } = useCollection(bookingsQuery);
+  useEffect(() => {
+    async function fetchBookings() {
+      if (!user) {
+        setDataLoading(false);
+        return;
+      }
+      const { data } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('userId', user.id)
+        .order('createdAt', { ascending: false });
+      setBookings(data || []);
+      setDataLoading(false);
+    }
+    
+    if (!authLoading) {
+      fetchBookings();
+    }
+  }, [user, authLoading]);
 
   if (authLoading || (user && dataLoading)) {
     return (

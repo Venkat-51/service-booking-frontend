@@ -2,8 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useAuth } from '@/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { supabase } from '@/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,21 +16,23 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const auth = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) return;
     setLoading(true);
 
     try {
+      let result;
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
+        result = await supabase.auth.signInWithPassword({ email, password });
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        result = await supabase.auth.signUp({ email, password });
       }
+      
+      if (result.error) throw result.error;
+      
       router.push('/');
     } catch (error: any) {
       toast({
@@ -45,11 +46,9 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!auth) return;
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      router.push('/');
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+      if (error) throw error;
     } catch (error: any) {
       toast({
         title: "Google Sign In Failed",

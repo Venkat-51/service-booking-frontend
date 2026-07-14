@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Home, Search, Calendar, User, Wrench, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useUser } from '@/supabase/provider';
 
 export function Navbar() {
   const pathname = usePathname();

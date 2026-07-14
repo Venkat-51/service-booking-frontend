@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useUser, useAuth } from '@/firebase';
-import { signOut } from 'firebase/auth';
+import { useUser } from '@/supabase/provider';
+import { supabase } from '@/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,14 +12,11 @@ import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
   const { user, loading } = useUser();
-  const auth = useAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {
-    if (auth) {
-      await signOut(auth);
-      router.push('/');
-    }
+    await supabase.auth.signOut();
+    router.push('/');
   };
 
   if (loading) {
@@ -49,13 +46,13 @@ export default function ProfilePage() {
           <div className="h-32 bg-gradient-to-r from-primary to-accent" />
           <CardContent className="p-8 -mt-16 text-center">
             <Avatar className="h-32 w-32 mx-auto border-4 border-white shadow-xl">
-              <AvatarImage src={user.photoURL || ''} />
+              <AvatarImage src={user.user_metadata?.avatar_url || ''} />
               <AvatarFallback className="text-3xl font-bold bg-primary/10 text-primary">
-                {user.displayName?.[0] || user.email?.[0] || 'U'}
+                {user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U'}
               </AvatarFallback>
             </Avatar>
             <div className="mt-4">
-              <h1 className="text-2xl font-bold font-headline">{user.displayName || 'BookMyService User'}</h1>
+              <h1 className="text-2xl font-bold font-headline">{user.user_metadata?.full_name || 'BookMyService User'}</h1>
               <p className="text-muted-foreground flex items-center justify-center gap-1 mt-1">
                 <Mail className="h-4 w-4" />
                 {user.email}

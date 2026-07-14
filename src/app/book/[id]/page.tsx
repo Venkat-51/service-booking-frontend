@@ -10,10 +10,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarIcon, MapPinIcon, UserIcon, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { useFirestore, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { useUser } from '@/supabase/provider';
+import { supabase } from '@/supabase/client';
 
 export default function BookingPage() {
   const { id } = useParams();
@@ -21,14 +19,13 @@ export default function BookingPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useUser();
-  const db = useFirestore();
   const [loading, setLoading] = useState(false);
 
   const techName = searchParams.get('name') || 'Technician';
   const serviceType = searchParams.get('type') || 'Service';
 
   const [formData, setFormData] = useState({
-    userName: user?.displayName || '',
+    userName: user?.user_metadata?.full_name || '',
     address: '',
     date: new Date().toISOString().split('T')[0],
   });
@@ -56,29 +53,27 @@ export default function BookingPage() {
 
     setLoading(true);
     
-    if (db) {
+    try {
       const bookingData = {
         technicianId: id as string,
         technicianName: techName,
         serviceType: serviceType,
-        userId: user.uid,
+        userId: user.id,
         ...formData,
-        createdAt: serverTimestamp()
       };
 
-      addDoc(collection(db, 'bookings'), bookingData)
-        .then(() => {
-          router.push(`/success?tech=${encodeURIComponent(techName)}&eta=${encodeURIComponent('30 mins')}`);
-        })
-        .catch(async (error) => {
-          const permissionError = new FirestorePermissionError({
-            path: `bookings`,
-            operation: 'create',
-            requestResourceData: bookingData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
-          setLoading(false);
-        });
+      const { error } = await supabase.from('bookings').insert(bookingData);
+      
+      if (error) throw error;
+      
+      router.push(`/success?tech=${encodeURIComponent(techName)}&eta=${encodeURIComponent('30 mins')}`);
+    } catch (error: any) {
+      toast({
+        title: "Booking Error",
+        description: error.message,
+        variant: "destructive"
+      });
+      setLoading(false);
     }
   };
 

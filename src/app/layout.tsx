@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Navbar } from '@/components/Navbar';
 import { Toaster } from '@/components/ui/toaster';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { SupabaseProvider } from '@/supabase/provider';
 
 export const metadata: Metadata = {
   title: 'BookMyService | Local Service Finder',
@@ -23,13 +23,13 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col">
-        <FirebaseClientProvider>
+        <SupabaseProvider>
           <Navbar />
           <main className="flex-1">
             {children}
           </main>
           <Toaster />
-        </FirebaseClientProvider>
+        </SupabaseProvider>
       </body>
     </html>
   );
